@@ -5,7 +5,7 @@ LangGraph ReAct agent powered by OpenAI + Composio tools.
 | File | Purpose |
 |---|---|
 | `state.py` | `AgentState` schema (`messages` with `add_messages` reducer) |
-| `tools.py` | Composio Gmail + Google Drive tools (per Firebase `uid`) |
+| `tools.py` | Composio Gmail + Google Docs tools (per Firebase `uid`) |
 | `graph.py` | `StateGraph`: agent → `tools_condition` → ToolNode loop, `MemorySaver`, streaming |
 | `message_trim.py` | Truncate tool output + cap history before LLM calls |
 

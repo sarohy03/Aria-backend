@@ -16,6 +16,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
+from agent.doc_artifacts import artifact_from_tool_result, artifact_to_markdown, loading_artifact
 from agent.message_trim import truncate_tool_message, trim_messages_for_llm
 
 from agent.prompts import ARIA_SYSTEM_PROMPT
@@ -143,7 +144,7 @@ def _friendly_error(exc: Exception) -> str:
     message = str(exc)
     if "ConnectedAccountNotFound" in message or "No connected account" in message:
         return (
-            "Gmail or Google Drive isn't connected yet. "
+            "Gmail or Google Docs isn't connected yet. "
             "Use Connect in the sidebar, then try again."
         )
     if "ActionExecute" in message and "gmail" in message.lower():
@@ -168,6 +169,8 @@ async def stream_agent_response(
     else:
         graph_input = {"messages": history_to_messages(history)}
 
+    pending_tool_args: dict[str, dict] = {}
+
     try:
         async for item in app.astream(
             graph_input,
@@ -189,13 +192,37 @@ async def stream_agent_response(
                         last = messages[-1]
                         for call in getattr(last, "tool_calls", None) or []:
                             name = call.get("name", "tool")
+                            call_id = call.get("id") or name
+                            pending_tool_args[call_id] = call.get("args") or {}
                             yield {
                                 "type": "tool",
                                 "status": "start",
                                 "name": name,
                                 "label": tool_label(name),
                             }
+                            if name.startswith("GOOGLEDOCS_"):
+                                yield {
+                                    "type": "artifact",
+                                    "artifact": loading_artifact(
+                                        name, call_id, pending_tool_args[call_id]
+                                    ),
+                                }
                 if "tools" in payload:
+                    tools_update = payload.get("tools") or {}
+                    for msg in tools_update.get("messages") or []:
+                        if not isinstance(msg, ToolMessage):
+                            continue
+                        if not (msg.name or "").startswith("GOOGLEDOCS_"):
+                            continue
+                        call_id = msg.tool_call_id or msg.name
+                        artifact = artifact_from_tool_result(
+                            msg.name,
+                            call_id,
+                            msg.content,
+                            pending_tool_args.get(call_id),
+                        )
+                        if artifact:
+                            yield {"type": "artifact", "artifact": artifact}
                     yield {"type": "tool", "status": "done"}
                 continue
 

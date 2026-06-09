@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 TOOLKITS = {
     "gmail": {"label": "Gmail", "slug": "gmail"},
-    "googledrive": {"label": "Google Drive", "slug": "googledrive"},
+    "googledocs": {"label": "Google Docs", "slug": "googledocs"},
 }
 
 ACTIVE_STATUSES = {"ACTIVE", "INITIATED"}
@@ -21,21 +21,21 @@ def _get_auth_config_id(toolkit_slug: str) -> str:
         return newest.id
 
     created = composio.auth_configs.create(
-        toolkit={"slug": toolkit_slug},
-        auth_config={
+        toolkit_slug,
+        {
             "type": "use_composio_managed_auth",
             "tool_access_config": {"tools_for_connected_account_creation": []},
         },
     )
-    return created.auth_config.id
+    return created.id
 
 
 def _normalize_toolkit_slug(slug: str) -> str:
-    normalized = slug.lower().replace("-", "").replace("_", "")
+    normalized = slug.lower().replace("-", "").replace("_", "").replace(" ", "")
     aliases = {
         "gmail": "gmail",
-        "googledrive": "googledrive",
-        "google drive": "googledrive",
+        "googledocs": "googledocs",
+        "googledrive": "googledocs",
     }
     if normalized in aliases:
         return aliases[normalized]

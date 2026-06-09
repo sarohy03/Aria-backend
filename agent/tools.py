@@ -5,14 +5,27 @@ from services.integrations.composio_client import get_composio_langchain_client
 
 logger = logging.getLogger(__name__)
 
-GMAIL_DRIVE_TOOLS = [
+GMAIL_TOOLS = [
     "GMAIL_FETCH_EMAILS",
     "GMAIL_SEND_EMAIL",
     "GMAIL_CREATE_EMAIL_DRAFT",
-    "GOOGLEDRIVE_FIND_FILE",
-    "GOOGLEDRIVE_UPLOAD_FILE",
-    "GOOGLEDRIVE_GET_FILE_CONTENT",
 ]
+
+GOOGLEDOCS_TOOLS = [
+    "GOOGLEDOCS_CREATE_DOCUMENT",
+    "GOOGLEDOCS_CREATE_DOCUMENT_MARKDOWN",
+    "GOOGLEDOCS_SEARCH_DOCUMENTS",
+    "GOOGLEDOCS_GET_DOCUMENT_PLAINTEXT",
+    "GOOGLEDOCS_GET_DOCUMENT_BY_ID",
+    "GOOGLEDOCS_INSERT_TEXT_ACTION",
+    "GOOGLEDOCS_UPDATE_EXISTING_DOCUMENT",
+    "GOOGLEDOCS_UPDATE_DOCUMENT_MARKDOWN",
+    "GOOGLEDOCS_REPLACE_ALL_TEXT",
+    "GOOGLEDOCS_UPDATE_DOCUMENT_BATCH",
+    "GOOGLEDOCS_COPY_DOCUMENT",
+]
+
+ARIA_TOOLS = GMAIL_TOOLS + GOOGLEDOCS_TOOLS
 
 _composio = None
 
@@ -33,11 +46,11 @@ def get_composio_tools(user_id: str) -> list:
         return []
 
     try:
-        return composio.tools.get(user_id=user_id, tools=GMAIL_DRIVE_TOOLS)
+        return composio.tools.get(user_id=user_id, tools=ARIA_TOOLS)
     except Exception:
         logger.exception("Failed to load Composio tools for user %s", user_id)
         try:
-            return composio.tools.get(user_id=user_id, toolkits=["GMAIL", "GOOGLEDRIVE"])
+            return composio.tools.get(user_id=user_id, toolkits=["GMAIL", "GOOGLEDOCS"])
         except Exception:
             logger.exception("Failed to load Composio toolkits for user %s", user_id)
             return []
