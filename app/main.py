@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import CORS_ORIGINS
+from app.config import CORS_ORIGIN_REGEX, CORS_ORIGINS
 from auth.firebase import init_firebase
 from routes.chat.chat import router as chat_router
 from routes.integrations.integrations import router as integrations_router
@@ -16,6 +16,7 @@ app = FastAPI(title="Aria API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

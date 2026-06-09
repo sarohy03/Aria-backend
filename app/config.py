@@ -23,6 +23,12 @@ CORS_ORIGINS = list(
     )
 )
 
+# Allow Vercel production + preview URLs (e.g. aria-frontend-xxx-team.vercel.app).
+CORS_ORIGIN_REGEX = os.getenv(
+    "CORS_ORIGIN_REGEX",
+    r"https://aria-frontend.*\.vercel\.app",
+)
+
 # Max emails per Gmail tool call — keeps tool output within context limits
 GMAIL_FETCH_MAX_RESULTS = int(os.getenv("GMAIL_FETCH_MAX_RESULTS", "15"))
 
