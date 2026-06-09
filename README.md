@@ -243,13 +243,23 @@ Full prompt lives in `agent/prompts.py` (planned).
 
 ## Deployment (Render)
 
-1. Create a new Web Service on Render
-2. Set root directory to `backend`
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Add all environment variables from `.env.example`
+Full guide: [DEPLOY.md](./DEPLOY.md)
 
-Point the frontend `VITE_API_URL` at your Render service URL.
+### Render Web Service
+
+| Setting | Value |
+|---|---|
+| Build | `pip install -r requirements.txt` |
+| Start | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 75` |
+| Health check | `/health` |
+
+Or deploy via `render.yaml` (Blueprint).
+
+### Required env vars
+
+`OPENAI_API_KEY`, `COMPOSIO_API_KEY`, `FRONTEND_URL` (your Vercel URL), `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`
+
+`FRONTEND_URL` controls CORS and Composio OAuth callbacks. Optional `CORS_ORIGINS` for extra origins (comma-separated).
 
 ---
 
