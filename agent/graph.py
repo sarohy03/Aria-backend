@@ -19,11 +19,12 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from agent.doc_artifacts import artifact_from_tool_result, artifact_to_markdown, loading_artifact
 from agent.message_trim import truncate_tool_message, trim_messages_for_llm
 
-from agent.prompts import ARIA_SYSTEM_PROMPT
+from agent.prompts import build_system_prompt
 from agent.state import AgentState
 from agent.tool_labels import tool_label
-from agent.tools import get_composio_tools
+from agent.tools import get_agent_tools
 from app.config import OPENAI_API_KEY, OPENAI_MODEL
+from db import firestore as db
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,14 @@ def _build_graph(tools: list):
     llm_with_tools = llm.bind_tools(tools) if tools else llm
 
     async def agent_node(state: AgentState, config: RunnableConfig):
+        uid = config["configurable"]["uid"]
+        memory = db.get_user_memory(uid)
+        system_content = build_system_prompt(memory)
         trimmed = trim_messages_for_llm(state["messages"])
+        if trimmed and isinstance(trimmed[0], SystemMessage):
+            trimmed[0] = SystemMessage(content=system_content)
+        else:
+            trimmed = [SystemMessage(content=system_content), *trimmed]
         response = await llm_with_tools.ainvoke(trimmed, config)
         return {"messages": [response]}
 
@@ -80,7 +88,7 @@ def _build_graph(tools: list):
 
 def get_app(uid: str):
     if uid not in _apps:
-        tools = get_composio_tools(uid)
+        tools = get_agent_tools(uid)
         _apps[uid] = _build_graph(tools)
     return _apps[uid]
 
@@ -101,8 +109,9 @@ def reset_session(uid: str, session_id: str) -> None:
         logger.exception("Failed to reset session checkpoint %s:%s", uid, session_id)
 
 
-def history_to_messages(history: list[dict]) -> list[BaseMessage]:
-    messages: list[BaseMessage] = [SystemMessage(content=ARIA_SYSTEM_PROMPT)]
+def history_to_messages(history: list[dict], uid: str) -> list[BaseMessage]:
+    memory = db.get_user_memory(uid)
+    messages: list[BaseMessage] = [SystemMessage(content=build_system_prompt(memory))]
     for item in history:
         role = item.get("role")
         content = item.get("content", "")
@@ -132,7 +141,7 @@ def _extract_text(chunk: BaseMessage) -> str | None:
 
 
 def _thread_config(uid: str, session_id: str) -> dict:
-    return {"configurable": {"thread_id": f"{uid}:{session_id}"}}
+    return {"configurable": {"thread_id": f"{uid}:{session_id}", "uid": uid}}
 
 
 def _friendly_error(exc: Exception) -> str:
@@ -167,7 +176,7 @@ async def stream_agent_response(
     if snapshot.values.get("messages"):
         graph_input = {"messages": [HumanMessage(content=user_message)]}
     else:
-        graph_input = {"messages": history_to_messages(history)}
+        graph_input = {"messages": history_to_messages(history, uid)}
 
     pending_tool_args: dict[str, dict] = {}
 

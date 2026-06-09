@@ -1,6 +1,7 @@
 import logging
 
 from app.config import COMPOSIO_API_KEY
+from agent.memory_tools import create_memory_tools
 from services.integrations.composio_client import get_composio_langchain_client
 
 logger = logging.getLogger(__name__)
@@ -54,3 +55,7 @@ def get_composio_tools(user_id: str) -> list:
         except Exception:
             logger.exception("Failed to load Composio toolkits for user %s", user_id)
             return []
+
+
+def get_agent_tools(user_id: str) -> list:
+    return get_composio_tools(user_id) + create_memory_tools(user_id)

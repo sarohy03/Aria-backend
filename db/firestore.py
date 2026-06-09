@@ -20,6 +20,36 @@ def _now():
     return datetime.now(timezone.utc)
 
 
+def _users(uid: str):
+    return get_db().collection("users").document(uid)
+
+
+def get_user_memory(uid: str) -> list[str]:
+    doc = _users(uid).get()
+    if not doc.exists:
+        return []
+    facts = doc.to_dict().get("memory_facts") or []
+    return [str(f).strip() for f in facts if str(f).strip()]
+
+
+def add_user_memory_fact(uid: str, fact: str) -> list[str]:
+    fact = fact.strip()
+    if not fact:
+        return get_user_memory(uid)
+
+    ref = _users(uid)
+    doc = ref.get()
+    existing = []
+    if doc.exists:
+        existing = [str(f).strip() for f in (doc.to_dict().get("memory_facts") or []) if str(f).strip()]
+
+    lowered = fact.lower()
+    merged = [f for f in existing if f.lower() != lowered]
+    merged.append(fact)
+    ref.set({"memory_facts": merged}, merge=True)
+    return merged
+
+
 def _sessions(uid: str):
     return get_db().collection("users").document(uid).collection("sessions")
 

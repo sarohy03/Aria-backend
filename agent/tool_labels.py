@@ -13,6 +13,7 @@ TOOL_LABELS = {
     "GOOGLEDOCS_REPLACE_ALL_TEXT": "Editing document…",
     "GOOGLEDOCS_UPDATE_DOCUMENT_BATCH": "Updating document…",
     "GOOGLEDOCS_COPY_DOCUMENT": "Copying document…",
+    "save_user_memory": "Saving to memory…",
 }
 
 

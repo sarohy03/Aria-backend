@@ -52,3 +52,16 @@ Example doc artifact:
 
 Add a short line of prose before/after artifacts when helpful. Do not repeat artifact fields in plain text.
 """
+
+
+def build_system_prompt(memory_facts: list[str] | None = None) -> str:
+    if not memory_facts:
+        return ARIA_SYSTEM_PROMPT
+    facts = "\n".join(f"- {fact}" for fact in memory_facts)
+    return (
+        f"{ARIA_SYSTEM_PROMPT}\n\n"
+        "## User memory (persists across all chats)\n"
+        f"{facts}\n\n"
+        "When the user shares new lasting information (name, preferences, role, etc.), "
+        "call **save_user_memory** so future chats remember it."
+    )

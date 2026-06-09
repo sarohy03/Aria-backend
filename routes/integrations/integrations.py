@@ -16,6 +16,16 @@ def integration_status(uid: str = Depends(get_current_uid)):
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
+@router.post("/connect", response_model=ConnectResponse)
+def connect_google(uid: str = Depends(get_current_uid)):
+    try:
+        return composio_service.start_bundle_connection(uid)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
 @router.post("/connect/{toolkit}", response_model=ConnectResponse)
 def connect_toolkit(toolkit: str, uid: str = Depends(get_current_uid)):
     try:

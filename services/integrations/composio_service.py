@@ -5,6 +5,8 @@ from services.integrations.composio_client import get_composio_client
 
 logger = logging.getLogger(__name__)
 
+TOOLKIT_CONNECT_ORDER = ["gmail", "googledocs"]
+
 TOOLKITS = {
     "gmail": {"label": "Gmail", "slug": "gmail"},
     "googledocs": {"label": "Google Docs", "slug": "googledocs"},
@@ -72,14 +74,35 @@ def get_integration_status(uid: str) -> dict:
     return {
         "integrations": integrations,
         "all_connected": all(item["connected"] for item in integrations),
+        "partially_connected": any(item["connected"] for item in integrations)
+        and not all(item["connected"] for item in integrations),
     }
+
+
+def _missing_toolkit_slugs(uid: str) -> list[str]:
+    status = get_integration_status(uid)
+    return [
+        item["slug"]
+        for item in status["integrations"]
+        if not item["connected"]
+    ]
+
+
+def start_bundle_connection(uid: str) -> dict:
+    missing = _missing_toolkit_slugs(uid)
+    if not missing:
+        raise ValueError("Google account already connected")
+    for slug in TOOLKIT_CONNECT_ORDER:
+        if slug in missing:
+            return start_connection(uid, slug)
+    return start_connection(uid, missing[0])
 
 
 def start_connection(uid: str, toolkit: str) -> dict:
     toolkit_slug = _normalize_toolkit_slug(toolkit)
     composio = get_composio_client()
     auth_config_id = _get_auth_config_id(toolkit_slug)
-    callback_url = f"{FRONTEND_URL}/chat?connected={toolkit_slug}"
+    callback_url = f"{FRONTEND_URL}/chat?connected=composio"
 
     request = composio.connected_accounts.link(
         user_id=uid,
