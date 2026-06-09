@@ -2,7 +2,7 @@
 
 > **One chat. Your entire work life.**
 
-FastAPI service powering **Aria**, an AI Chief of Staff for small business owners. It verifies Firebase auth, runs a LangGraph agent with Gemini, executes Gmail and Google Drive actions via Composio, persists chat history in Firestore, and streams responses to the client.
+FastAPI service powering **Aria**, an AI Chief of Staff for small business owners. It verifies Firebase auth, runs a LangGraph agent with OpenAI, executes Gmail and Google Drive actions via Composio, persists chat history in Firestore, and streams responses to the client.
 
 ---
 
@@ -13,7 +13,7 @@ The backend is the brain of Aria. For each user message it:
 
 1. Verifies the Firebase ID token
 2. Loads recent chat history from Firestore
-3. Runs a **LangGraph ReAct agent** (Gemini 1.5 Pro + Composio tools)
+3. Runs a **LangGraph ReAct agent** (OpenAI GPT-4o + Composio tools)
 4. Streams the response back via **Server-Sent Events (SSE)**
 5. Saves the new messages to Firestore
 
@@ -36,7 +36,7 @@ The backend is the brain of Aria. For each user message it:
 |---|---|
 | Framework | FastAPI (Python 3.10) |
 | Agent | LangGraph (ReAct tool-calling loop) |
-| LLM | Gemini 1.5 Pro (`langchain-google-genai`) |
+| LLM | OpenAI GPT-4o (`langchain-openai`) |
 | Integrations | Composio (Gmail + Google Drive) |
 | Auth | Firebase Admin SDK (token verification) |
 | Database | Firestore (chat history) |
@@ -54,7 +54,7 @@ FastAPI
     ├── Auth middleware (Firebase Admin)
     ├── Firestore (sessions + messages)
     └── LangGraph Agent
-            ├── Gemini 1.5 Pro
+            ├── OpenAI GPT-4o
             ├── Composio Gmail tools
             └── Composio Google Drive tools
 ```
@@ -109,7 +109,7 @@ backend/
 
 - Python 3.10 or 3.11
 - Firebase project with Admin SDK credentials
-- Google AI (Gemini) API key
+- OpenAI API key
 - Composio account with Gmail + Google Drive connected
 
 ---
@@ -136,7 +136,7 @@ cp .env.example .env
 ```
 
 ```env
-GEMINI_API_KEY=
+OPENAI_API_KEY=
 COMPOSIO_API_KEY=
 FIREBASE_PROJECT_ID=
 FIREBASE_PRIVATE_KEY=

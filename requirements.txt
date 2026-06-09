@@ -1,2 +1,9 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
+langchain-openai>=0.3.0
+langchain-core>=0.3.0
+langgraph>=0.2.0
+composio>=0.13.0
+composio-langchain>=0.13.0
+firebase-admin>=6.0.0
+python-dotenv>=1.0.0

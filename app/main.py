@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Claire API")
+from routes.chat.chat import router as chat_router
+from routes.integrations.integrations import router as integrations_router
+from routes.sessions.sessions import router as sessions_router
+
+app = FastAPI(title="Aria API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -11,10 +15,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello from FastAPI"}
+app.include_router(chat_router)
+app.include_router(integrations_router)
+app.include_router(sessions_router)
 
 
 @app.get("/health")
